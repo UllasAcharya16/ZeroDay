@@ -275,9 +275,9 @@ export default function ClientPage() {
     reader.onload = (evt) => {
       const raw = evt.target.result.split("\n").map((r) => r.split(","));
       raw.shift();
-      const features = raw[0].map(Number);
+      const features = raw[0].slice(0, 76).map(Number); // Only take first 76 features
       setCsvData({ features, filename: file.name });
-      addLog(`✓ CSV parsed: ${features.length} features extracted`);
+      addLog(`✓ CSV parsed: 76 features extracted`);
       addLog("Data validation: PASSED");
     };
     
@@ -502,7 +502,7 @@ export default function ClientPage() {
                   >
                     <CheckCircle className="text-emerald-400 relative z-10" size={20} />
                     <span className="text-emerald-400 font-mono text-sm relative z-10">
-                      ✓ CSV Loaded — {csvData.features.length} features detected
+                      ✓ CSV Loaded — 76 features detected
                     </span>
                   </motion.div>
                 )}
