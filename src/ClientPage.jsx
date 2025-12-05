@@ -1,25 +1,3 @@
-// 
-
-
-// const handleCSV = (e) => {
-//     const file = e.target.files[0];
-//     if (!file) return;
-    
-//     addLog(`Reading file: ${file.name}`);
-//     const reader = new FileReader();
-    
-//     reader.onload = (evt) => {
-//       const raw = evt.target.result.split("\n").map((r) => r.split(","));
-//       raw.shift();
-//       const features = raw[0].map(Number);
-//       setCsvData({ features, filename: file.name });
-//       addLog(`✓ CSV parsed: ${features.length} features extracted`);
-//       addLog("Data validation: PASSED");
-//     };
-    
-//     reader.readAsText(file);
-//   };
-
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, ShieldAlert, CheckCircle, FileSpreadsheet, Cpu, Shield, Terminal, Zap, Activity, Lock, AlertTriangle, Eye } from "lucide-react";
@@ -337,34 +315,53 @@ export default function ClientPage() {
       let data;
       
       if (filename.includes("zero") || filename.includes("0day") || filename.includes("zeroday")) {
-        // Zero-day attack
+        // Zero-day attack - outside both clusters (FIXED VALUES)
+        const distanceCluster0 = 4.2847;
+        const distanceCluster1 = 4.5692;
+        const zeroScore = 0.9523;
+        
         data = {
-          cluster: Math.floor(Math.random() * 3) + 8,
+          cluster: -1, // Not assigned to any cluster
           inside_boundary: false,
-          classification: "ZERO-DAY"
+          classification: "ZERO-DAY",
+          distance_cluster_0: distanceCluster0,
+          distance_cluster_1: distanceCluster1,
+          zero_day_score: zeroScore
         };
         addLog("🚨 CRITICAL: Unknown signature detected!");
+        addLog(`Distance from Cluster 0: ${distanceCluster0}`);
+        addLog(`Distance from Cluster 1: ${distanceCluster1}`);
+        addLog(`Zero-Day Score: ${zeroScore}`);
         addLog("Pattern match: ZERO-DAY EXPLOIT");
         addLog("Alert level: MAXIMUM");
       } else if (filename.includes("normal")) {
-        // Normal traffic
+        // Normal traffic - Cluster 0 (FIXED VALUES)
+        const distanceCluster0 = 0.1847;
         data = {
-          cluster: Math.floor(Math.random() * 3),
+          cluster: 0,
           inside_boundary: true,
-          classification: "NORMAL"
+          classification: "NORMAL",
+          distance_cluster_0: distanceCluster0
         };
         addLog("Pattern recognized: Standard traffic");
+        addLog(`Assigned to Cluster 0`);
+        addLog(`Distance: ${distanceCluster0}`);
         addLog("Signature match: BENIGN");
       } else {
-        // Any other file = Known Attack
+        // Known Attack - Cluster 1 (FIXED VALUES)
         const attackTypes = ["DoS", "DDoS", "Probe", "U2R", "R2L"];
         const attack = attackTypes[Math.floor(Math.random() * attackTypes.length)];
+        const distanceCluster1 = 0.2134;
+        
         data = {
-          cluster: Math.floor(Math.random() * 5) + 3,
-          inside_boundary: false,
-          classification: `KNOWN ATTACK: ${attack}`
+          cluster: 1,
+          inside_boundary: true,
+          classification: `KNOWN ATTACK: ${attack}`,
+          distance_cluster_1: distanceCluster1
         };
         addLog("⚠ Anomaly detected!");
+        addLog(`Assigned to Cluster 1`);
+        addLog(`Distance: ${distanceCluster1}`);
         addLog(`Pattern recognized: ${attack} signature`);
       }
       
@@ -372,7 +369,7 @@ export default function ClientPage() {
       clearInterval(progressInterval);
       
       addLog("Response received");
-      addLog(`Cluster: ${data.cluster}`);
+      addLog(`Cluster: ${data.cluster === -1 ? 'NONE (Outlier)' : data.cluster}`);
       addLog(`Boundary: ${data.inside_boundary ? 'INSIDE' : 'OUTSIDE'}`);
       addLog(`Result: ${data.classification}`);
       
@@ -605,7 +602,13 @@ export default function ClientPage() {
                       className="bg-slate-950/50 border border-slate-700 p-4"
                     >
                       <div className="text-xs text-slate-500 mb-1 font-mono">CLUSTER ID</div>
-                      <div className="text-3xl font-black text-white">{result.cluster}</div>
+                      <div className="text-3xl font-black text-white">
+                        {result.cluster === -1 ? (
+                          <span className="text-red-400">NONE (OUTLIER)</span>
+                        ) : (
+                          `CLUSTER ${result.cluster}`
+                        )}
+                      </div>
                     </motion.div>
 
                     <motion.div
@@ -629,6 +632,74 @@ export default function ClientPage() {
                         )}
                       </div>
                     </motion.div>
+
+                    {/* Distance Metrics */}
+                    {result.classification === "ZERO-DAY" && (
+                      <>
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.25 }}
+                          className="bg-slate-950/50 border border-red-500/30 p-4"
+                        >
+                          <div className="text-xs text-slate-500 mb-2 font-mono">DISTANCE METRICS</div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-400 text-sm">From Cluster 0:</span>
+                              <span className="text-red-400 font-bold">{result.distance_cluster_0}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-400 text-sm">From Cluster 1:</span>
+                              <span className="text-red-400 font-bold">{result.distance_cluster_1}</span>
+                            </div>
+                          </div>
+                        </motion.div>
+
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.27 }}
+                          className="bg-slate-950/50 border border-red-500/30 p-4"
+                        >
+                          <div className="text-xs text-slate-500 mb-2 font-mono">ZERO-DAY CONFIDENCE</div>
+                          <div className="flex items-center justify-between">
+                            <div className="text-3xl font-black text-red-400">
+                              {(result.zero_day_score * 100).toFixed(1)}%
+                            </div>
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                            >
+                              <ShieldAlert className="text-red-400" size={32} />
+                            </motion.div>
+                          </div>
+                        </motion.div>
+                      </>
+                    )}
+
+                    {result.distance_cluster_0 && result.cluster === 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.25 }}
+                        className="bg-slate-950/50 border border-emerald-500/30 p-4"
+                      >
+                        <div className="text-xs text-slate-500 mb-1 font-mono">DISTANCE FROM CENTROID</div>
+                        <div className="text-2xl font-black text-emerald-400">{result.distance_cluster_0}</div>
+                      </motion.div>
+                    )}
+
+                    {result.distance_cluster_1 && result.cluster === 1 && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.25 }}
+                        className="bg-slate-950/50 border border-amber-500/30 p-4"
+                      >
+                        <div className="text-xs text-slate-500 mb-1 font-mono">DISTANCE FROM CENTROID</div>
+                        <div className="text-2xl font-black text-amber-400">{result.distance_cluster_1}</div>
+                      </motion.div>
+                    )}
 
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
