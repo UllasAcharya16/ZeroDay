@@ -307,7 +307,7 @@ export default function ClientPage() {
     try {
       addLog("Sending data to neural processor...");
       const res = await fetch(
-        "https://cork-textbooks-scenes-smooth.trycloudflare.com/predict",
+        "https://initiative-cruises-span-appropriations.trycloudflare.com",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
