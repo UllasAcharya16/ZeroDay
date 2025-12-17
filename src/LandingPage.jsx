@@ -393,7 +393,7 @@ const Dashboard = () => {
           <div className="space-y-6">
             <div className="bg-slate-950 border border-slate-700 p-4">
                <div className="text-xs text-slate-500 mb-1 font-mono">CONFIDENCE SCORE</div>
-               <div className="text-4xl font-black text-white">99.9<span className="text-cyan-500">%</span></div>
+               <div className="text-4xl font-black text-white">98<span className="text-cyan-500">%</span></div>
                <div className="w-full h-1 bg-slate-800 mt-2">
                  <div className="w-[99.9%] h-full bg-cyan-500" />
                </div>
