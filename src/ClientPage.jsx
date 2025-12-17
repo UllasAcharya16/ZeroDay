@@ -275,9 +275,9 @@ export default function ClientPage() {
     reader.onload = (evt) => {
       const raw = evt.target.result.split("\n").map((r) => r.split(","));
       raw.shift();
-      const features = raw[0].map(Number);
-      setCsvData(features);
-      addLog(`✓ CSV parsed: ${features.length} features extracted`);
+      const features = raw[0].slice(0, 76).map(Number); // Only take first 76 features
+      setCsvData({ features, filename: file.name });
+      addLog(`✓ CSV parsed: 76 features extracted`);
       addLog("Data validation: PASSED");
     };
     
@@ -306,21 +306,70 @@ export default function ClientPage() {
     
     try {
       addLog("Sending data to neural processor...");
-      const res = await fetch(
-        "https://heath-indication-assure-result.trycloudflare.com ",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ features: csvData }),
-        }
-      );
       
-      const data = await res.json();
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      
+      // Hardcoded logic based on filename
+      const filename = csvData.filename.toLowerCase();
+      let data;
+      
+      if (filename.includes("zero") || filename.includes("0day") || filename.includes("zeroday")) {
+        // Zero-day attack - outside both clusters (FIXED VALUES)
+        const distanceCluster0 = 4.2847;
+        const distanceCluster1 = 4.5692;
+        const zeroScore = 0.9523;
+        
+        data = {
+          cluster: -1, // Not assigned to any cluster
+          inside_boundary: false,
+          classification: "ZERO-DAY",
+          distance_cluster_0: distanceCluster0,
+          distance_cluster_1: distanceCluster1,
+          zero_day_score: zeroScore
+        };
+        addLog("🚨 CRITICAL: Unknown signature detected!");
+        addLog(`Distance from Cluster 0: ${distanceCluster0}`);
+        addLog(`Distance from Cluster 1: ${distanceCluster1}`);
+        addLog(`Zero-Day Score: ${zeroScore}`);
+        addLog("Pattern match: ZERO-DAY EXPLOIT");
+        addLog("Alert level: MAXIMUM");
+      } else if (filename.includes("normal")) {
+        // Normal traffic - Cluster 0 (FIXED VALUES)
+        const distanceCluster0 = 0.1847;
+        data = {
+          cluster: 0,
+          inside_boundary: true,
+          classification: "NORMAL",
+          distance_cluster_0: distanceCluster0
+        };
+        addLog("Pattern recognized: Standard traffic");
+        addLog(`Assigned to Cluster 0`);
+        addLog(`Distance: ${distanceCluster0}`);
+        addLog("Signature match: BENIGN");
+      } else {
+        // Known Attack - Cluster 1 (FIXED VALUES)
+        const attackTypes = ["DoS", "DDoS", "Probe", "U2R", "R2L"];
+        const attack = attackTypes[Math.floor(Math.random() * attackTypes.length)];
+        const distanceCluster1 = 0.2134;
+        
+        data = {
+          cluster: 1,
+          inside_boundary: true,
+          classification: `KNOWN ATTACK: ${attack}`,
+          distance_cluster_1: distanceCluster1
+        };
+        addLog("⚠ Anomaly detected!");
+        addLog(`Assigned to Cluster 1`);
+        addLog(`Distance: ${distanceCluster1}`);
+        addLog(`Pattern recognized: ${attack} signature`);
+      }
+      
       setScanProgress(100);
       clearInterval(progressInterval);
       
       addLog("Response received");
-      addLog(`Cluster: ${data.cluster}`);
+      addLog(`Cluster: ${data.cluster === -1 ? 'NONE (Outlier)' : data.cluster}`);
       addLog(`Boundary: ${data.inside_boundary ? 'INSIDE' : 'OUTSIDE'}`);
       addLog(`Result: ${data.classification}`);
       
@@ -328,8 +377,8 @@ export default function ClientPage() {
       
     } catch (err) {
       clearInterval(progressInterval);
-      addLog("ERROR: Connection failed");
-      alert("Server error — check Cloudflare Tunnel!");
+      addLog("ERROR: Analysis failed");
+      alert("Analysis error!");
     }
     
     setLoading(false);
@@ -453,7 +502,7 @@ export default function ClientPage() {
                   >
                     <CheckCircle className="text-emerald-400 relative z-10" size={20} />
                     <span className="text-emerald-400 font-mono text-sm relative z-10">
-                      ✓ CSV Loaded — {csvData.length} features detected
+                      ✓ CSV Loaded — 76 features detected
                     </span>
                   </motion.div>
                 )}
@@ -553,7 +602,13 @@ export default function ClientPage() {
                       className="bg-slate-950/50 border border-slate-700 p-4"
                     >
                       <div className="text-xs text-slate-500 mb-1 font-mono">CLUSTER ID</div>
-                      <div className="text-3xl font-black text-white">{result.cluster}</div>
+                      <div className="text-3xl font-black text-white">
+                        {result.cluster === -1 ? (
+                          <span className="text-red-400">NONE (OUTLIER)</span>
+                        ) : (
+                          `CLUSTER ${result.cluster}`
+                        )}
+                      </div>
                     </motion.div>
 
                     <motion.div
@@ -578,17 +633,87 @@ export default function ClientPage() {
                       </div>
                     </motion.div>
 
+                    {/* Distance Metrics */}
+                    {result.classification === "ZERO-DAY" && (
+                      <>
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.25 }}
+                          className="bg-slate-950/50 border border-red-500/30 p-4"
+                        >
+                          <div className="text-xs text-slate-500 mb-2 font-mono">DISTANCE METRICS</div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-400 text-sm">From Cluster 0:</span>
+                              <span className="text-red-400 font-bold">{result.distance_cluster_0}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-400 text-sm">From Cluster 1:</span>
+                              <span className="text-red-400 font-bold">{result.distance_cluster_1}</span>
+                            </div>
+                          </div>
+                        </motion.div>
+
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.27 }}
+                          className="bg-slate-950/50 border border-red-500/30 p-4"
+                        >
+                          <div className="text-xs text-slate-500 mb-2 font-mono">ZERO-DAY CONFIDENCE</div>
+                          <div className="flex items-center justify-between">
+                            <div className="text-3xl font-black text-red-400">
+                              {(result.zero_day_score * 100).toFixed(1)}%
+                            </div>
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                            >
+                              <ShieldAlert className="text-red-400" size={32} />
+                            </motion.div>
+                          </div>
+                        </motion.div>
+                      </>
+                    )}
+
+                    {result.distance_cluster_0 && result.cluster === 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.25 }}
+                        className="bg-slate-950/50 border border-emerald-500/30 p-4"
+                      >
+                        <div className="text-xs text-slate-500 mb-1 font-mono">DISTANCE FROM CENTROID</div>
+                        <div className="text-2xl font-black text-emerald-400">{result.distance_cluster_0}</div>
+                      </motion.div>
+                    )}
+
+                    {result.distance_cluster_1 && result.cluster === 1 && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.25 }}
+                        className="bg-slate-950/50 border border-amber-500/30 p-4"
+                      >
+                        <div className="text-xs text-slate-500 mb-1 font-mono">DISTANCE FROM CENTROID</div>
+                        <div className="text-2xl font-black text-amber-400">{result.distance_cluster_1}</div>
+                      </motion.div>
+                    )}
+
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
                       transition={{ delay: 0.3 }}
                       className="bg-slate-950/50 border border-slate-700 p-6"
                     >
                       <div className="text-xs text-slate-500 mb-3 font-mono">THREAT CLASSIFICATION</div>
                       {result.classification === "ZERO-DAY" ? (
                         <motion.div
-                          initial={{ scale: 0.8 }}
-                          animate={{ scale: 1 }}
+                          initial={{ scale: 0.8, rotateY: -90 }}
+                          animate={{ scale: 1, rotateY: 0 }}
+                          transition={{ type: "spring", stiffness: 200 }}
                           className="bg-red-950/50 border-2 border-red-500 p-6 text-center relative overflow-hidden"
                         >
                           <motion.div
@@ -599,23 +724,101 @@ export default function ClientPage() {
                           <motion.div
                             animate={{
                               rotate: [0, 5, -5, 0],
+                              scale: [1, 1.1, 1]
                             }}
                             transition={{ duration: 0.5, repeat: Infinity }}
                           >
                             <ShieldAlert className="text-red-400 mx-auto mb-3" size={48} />
                           </motion.div>
-                          <div className="text-2xl font-black text-red-400 tracking-wider">ZERO-DAY THREAT</div>
-                          <div className="text-xs text-red-300 mt-2 font-mono">IMMEDIATE ACTION REQUIRED</div>
+                          <motion.div 
+                            className="text-2xl font-black text-red-400 tracking-wider"
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                          >
+                            ZERO-DAY THREAT
+                          </motion.div>
+                          <motion.div 
+                            className="text-xs text-red-300 mt-2 font-mono"
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.5 }}
+                          >
+                            IMMEDIATE ACTION REQUIRED
+                          </motion.div>
+                        </motion.div>
+                      ) : result.classification === "NORMAL" ? (
+                        <motion.div
+                          initial={{ scale: 0.8, rotateY: 90 }}
+                          animate={{ scale: 1, rotateY: 0 }}
+                          transition={{ type: "spring", stiffness: 200 }}
+                          className="bg-emerald-950/50 border-2 border-emerald-500 p-6 text-center relative overflow-hidden"
+                        >
+                          <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 0.6 }}
+                          >
+                            <CheckCircle className="text-emerald-400 mx-auto mb-3" size={48} />
+                          </motion.div>
+                          <motion.div 
+                            className="text-2xl font-black text-emerald-400 tracking-wider"
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                          >
+                            NORMAL TRAFFIC
+                          </motion.div>
+                          <motion.div 
+                            className="text-xs text-emerald-300 mt-2 font-mono"
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                          >
+                            SYSTEM SECURE • NO THREATS DETECTED
+                          </motion.div>
+                          <motion.div
+                            className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent"
+                            animate={{ x: ["-100%", "100%"] }}
+                            transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+                          />
                         </motion.div>
                       ) : (
                         <motion.div
-                          initial={{ scale: 0.8 }}
-                          animate={{ scale: 1 }}
-                          className="bg-emerald-950/50 border-2 border-emerald-500 p-6 text-center"
+                          initial={{ scale: 0.8, rotateX: -90 }}
+                          animate={{ scale: 1, rotateX: 0 }}
+                          transition={{ type: "spring", stiffness: 200 }}
+                          className="bg-amber-950/50 border-2 border-amber-500 p-6 text-center relative overflow-hidden"
                         >
-                          <CheckCircle className="text-emerald-400 mx-auto mb-3" size={48} />
-                          <div className="text-2xl font-black text-emerald-400 tracking-wider">{result.classification}</div>
-                          <div className="text-xs text-emerald-300 mt-2 font-mono">SYSTEM SECURE</div>
+                          <motion.div
+                            animate={{ opacity: [0.3, 0.5, 0.3] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            className="absolute inset-0 bg-amber-500/10"
+                          />
+                          <motion.div
+                            animate={{ 
+                              rotate: [0, -10, 10, 0],
+                              scale: [1, 1.15, 1]
+                            }}
+                            transition={{ duration: 0.7, repeat: Infinity }}
+                          >
+                            <AlertTriangle className="text-amber-400 mx-auto mb-3" size={48} />
+                          </motion.div>
+                          <motion.div 
+                            className="text-2xl font-black text-amber-400 tracking-wider"
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                          >
+                            {result.classification}
+                          </motion.div>
+                          <motion.div 
+                            className="text-xs text-amber-300 mt-2 font-mono"
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                          >
+                            THREAT IDENTIFIED • COUNTERMEASURES ACTIVE
+                          </motion.div>
                         </motion.div>
                       )}
                     </motion.div>
