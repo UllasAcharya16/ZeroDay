@@ -1,16 +1,116 @@
-# React + Vite
+🚨 Zero-Day Attack Detection (Google Colab)
+📌 Project Description
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This Google Colab notebook implements an unsupervised zero-day attack detection system using PCA and K-Means clustering. The model focuses on learning normal network behavior and identifying anomalies without relying on predefined attack signatures, making it suitable for zero-day attack scenarios.
 
-Currently, two official plugins are available:
+🎯 Objectives
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Detect anomalous and zero-day attacks using unsupervised learning
 
-## React Compiler
+Reduce high-dimensional network traffic data using PCA
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Cluster traffic patterns using K-Means
 
-## Expanding the ESLint configuration
+Evaluate model performance using clustering and classification metrics
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+🧠 Approach Used
+
+Data Loading
+
+Dataset uploaded or mounted via Google Drive
+
+Preprocessing
+
+Missing value handling
+
+Feature scaling and normalization
+
+Dimensionality Reduction
+
+Principal Component Analysis (PCA)
+
+Clustering
+
+K-Means clustering applied on PCA-transformed data
+
+Evaluation
+
+Internal clustering metrics
+
+Confusion matrix and classification metrics (for analysis only)
+
+📊 Evaluation Metrics
+🔹 Clustering Metrics
+
+Silhouette Score
+
+Davies–Bouldin Index
+
+Calinski–Harabasz Index
+
+🔹 Classification Metrics (Evaluation Purpose)
+
+Accuracy
+
+Precision, Recall, F1-Score
+
+Confusion Matrix
+
+⚠️ Note: Classification labels are used only for evaluation.
+The model itself is unsupervised.
+
+📈 Results Overview
+
+Strong cluster separation in PCA space
+
+High accuracy in identifying normal traffic
+
+Low false-positive rate
+
+Conservative detection of attacks, typical of unsupervised zero-day detection models
+
+🛠️ Tools & Libraries
+
+Python
+
+Google Colab
+
+NumPy
+
+Pandas
+
+Scikit-learn
+
+Matplotlib / Seaborn
+
+▶️ How to Run (Colab)
+
+Open the notebook in Google Colab
+
+Upload the dataset or mount Google Drive
+
+Run cells sequentially from top to bottom
+
+View clustering metrics, confusion matrix, and plots in output cells
+
+⚠️ Limitations
+
+Attacks similar to normal traffic may not be detected
+
+Performance affected by dataset imbalance
+
+Accuracy is not a reliable metric for anomaly detection
+
+🔮 Future Work
+
+Adaptive anomaly thresholding
+
+Semi-supervised learning integration
+
+Topology-aware boundary enhancement
+
+Real-time deployment
+
+📌 Conclusion
+
+This Colab-based implementation demonstrates how unsupervised learning techniques can be applied for zero-day attack detection by modeling normal network behavior. The notebook serves as an experimental and educational framework for understanding anomaly-based intrusion detection.
