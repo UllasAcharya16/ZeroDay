@@ -1,116 +1,75 @@
-🚨 Zero-Day Attack Detection (Google Colab)
-📌 Project Description
+# **ZERO DAY ATTACK DETECTION**
 
-This Google Colab notebook implements an unsupervised zero-day attack detection system using PCA and K-Means clustering. The model focuses on learning normal network behavior and identifying anomalies without relying on predefined attack signatures, making it suitable for zero-day attack scenarios.
+## **Project Overview**
 
-🎯 Objectives
+This project implements a Zero-Day Attack Detection system using unsupervised machine learning techniques. The goal of the system is to learn normal network traffic behaviour and identify deviations that may indicate unknown or previously unseen (zero-day) attacks. The implementation is carried out in Google Colab using Python.
 
-Detect anomalous and zero-day attacks using unsupervised learning
+## **Objectives**
 
-Reduce high-dimensional network traffic data using PCA
+- To study zero-day attack detection using unsupervised learning
+- To model normal network behaviour without relying on attack signatures
+- To reduce high-dimensional network data using PCA
+- To cluster traffic patterns using K-Means
+- To evaluate performance using clustering metrics and confusion matrix
 
-Cluster traffic patterns using K-Means
+## **Methodology**
 
-Evaluate model performance using clustering and classification metrics
+### **1. Data Loading**
 
-🧠 Approach Used
+The dataset is loaded into Google Colab either through direct upload or by mounting Google Drive. Only relevant features required for analysis are selected.
 
-Data Loading
+### **2. Data Preprocessing**
 
-Dataset uploaded or mounted via Google Drive
+Preprocessing steps such as handling missing values and feature scaling are performed. Feature scaling is important because clustering algorithms depend on distance-based calculations.
 
-Preprocessing
+### **3. Dimensionality Reduction**
 
-Missing value handling
+Principal Component Analysis (PCA) is applied to reduce the dimensionality of the dataset while preserving most of the data variance. This helps in improving clustering performance.
 
-Feature scaling and normalization
+### **4. Clustering**
 
-Dimensionality Reduction
+K-Means clustering is applied on the PCA-transformed data to group similar network traffic patterns. This process is completely unsupervised and does not use class labels during training.
 
-Principal Component Analysis (PCA)
+### **5. Evaluation**
 
-Clustering
+Ground-truth labels are used only for evaluation purposes. The clustering output is compared with actual labels to analyse how effectively the model separates normal and attack traffic.
 
-K-Means clustering applied on PCA-transformed data
+## **Evaluation Metrics**
 
-Evaluation
+The following metrics are used for evaluation:
 
-Internal clustering metrics
+- Silhouette Score  
+- Davies–Bouldin Index  
+- Calinski–Harabasz Index  
+- Confusion Matrix  
+- Precision, Recall, and F1-Score  
 
-Confusion matrix and classification metrics (for analysis only)
+Accuracy is also calculated but is not considered a reliable metric due to the imbalanced nature of the dataset.
 
-📊 Evaluation Metrics
-🔹 Clustering Metrics
+## **Results Summary**
 
-Silhouette Score
+The clustering metrics indicate that the model forms well-separated clusters in the PCA feature space. The system is able to identify normal traffic with high confidence and maintains a low false positive rate. Attack detection is conservative, which is expected in an unsupervised zero-day detection approach.
 
-Davies–Bouldin Index
+## **Tools Used**
 
-Calinski–Harabasz Index
+- Python  
+- Google Colab  
+- NumPy  
+- Pandas  
+- Scikit-learn  
+- Matplotlib  
 
-🔹 Classification Metrics (Evaluation Purpose)
+## **How to Run**
 
-Accuracy
+1. Open the notebook in Google Colab  
+2. Upload the dataset or mount Google Drive  
+3. Run the cells sequentially from top to bottom  
+4. Observe the outputs and evaluation results  
 
-Precision, Recall, F1-Score
+## **Limitations**
 
-Confusion Matrix
+The model may fail to detect attacks that closely resemble normal traffic patterns. The performance also depends on feature selection and clustering parameters. This notebook is intended mainly for academic and experimental purposes.
 
-⚠️ Note: Classification labels are used only for evaluation.
-The model itself is unsupervised.
+## **Conclusion**
 
-📈 Results Overview
-
-Strong cluster separation in PCA space
-
-High accuracy in identifying normal traffic
-
-Low false-positive rate
-
-Conservative detection of attacks, typical of unsupervised zero-day detection models
-
-🛠️ Tools & Libraries
-
-Python
-
-Google Colab
-
-NumPy
-
-Pandas
-
-Scikit-learn
-
-Matplotlib / Seaborn
-
-▶️ How to Run (Colab)
-
-Open the notebook in Google Colab
-
-Upload the dataset or mount Google Drive
-
-Run cells sequentially from top to bottom
-
-View clustering metrics, confusion matrix, and plots in output cells
-
-⚠️ Limitations
-
-Attacks similar to normal traffic may not be detected
-
-Performance affected by dataset imbalance
-
-Accuracy is not a reliable metric for anomaly detection
-
-🔮 Future Work
-
-Adaptive anomaly thresholding
-
-Semi-supervised learning integration
-
-Topology-aware boundary enhancement
-
-Real-time deployment
-
-📌 Conclusion
-
-This Colab-based implementation demonstrates how unsupervised learning techniques can be applied for zero-day attack detection by modeling normal network behavior. The notebook serves as an experimental and educational framework for understanding anomaly-based intrusion detection.
+This project demonstrates how unsupervised learning techniques can be applied for zero-day attack detection by modelling normal network behaviour instead of relying on known attack signatures.
